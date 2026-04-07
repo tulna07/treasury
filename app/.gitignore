@@ -35,3 +35,4 @@ Thumbs.db
 coverage/
 *.log
 db-dumps/*.sql
+tsconfig.tsbuildinfo

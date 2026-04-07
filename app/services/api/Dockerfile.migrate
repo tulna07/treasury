@@ -1,3 +1,3 @@
-FROM migrate/migrate:v4
+FROM migrate/migrate:latest
 COPY migrations /migrations
 ENTRYPOINT ["/migrate"]

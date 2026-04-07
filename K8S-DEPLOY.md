@@ -41,7 +41,7 @@ docker push your-registry/treasury-web:latest
 **`app/services/api/Dockerfile.migrate`** (create this file):
 
 ```dockerfile
-FROM migrate/migrate:v4
+FROM migrate/migrate:latest
 COPY migrations /migrations
 ENTRYPOINT ["/migrate"]
 ```
