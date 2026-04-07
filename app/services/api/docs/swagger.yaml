@@ -1,0 +1,1024 @@
+basePath: /api/v1
+definitions:
+  github_com_kienlongbank_treasury-api_pkg_dto.APIError:
+    description: Standard error body with optional field-level validation errors.
+    properties:
+      code:
+        type: string
+      detail:
+        type: string
+      fields:
+        additionalProperties:
+          type: string
+        type: object
+      message:
+        type: string
+    type: object
+  github_com_kienlongbank_treasury-api_pkg_dto.APIResponse:
+    description: Standard API response envelope.
+    properties:
+      data: {}
+      error:
+        $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+      meta:
+        $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+      success:
+        type: boolean
+    type: object
+  github_com_kienlongbank_treasury-api_pkg_dto.ApprovalRequest:
+    description: Request body for deal approval or rejection.
+    properties:
+      action:
+        enum:
+        - APPROVE
+        - REJECT
+        type: string
+      comment:
+        maxLength: 2000
+        type: string
+      version:
+        minimum: 1
+        type: integer
+    required:
+    - action
+    - version
+    type: object
+  github_com_kienlongbank_treasury-api_pkg_dto.CreateFxDealRequest:
+    properties:
+      counterparty_id:
+        type: string
+      currency_code:
+        type: string
+      deal_type:
+        enum:
+        - SPOT
+        - FORWARD
+        - SWAP
+        type: string
+      direction:
+        enum:
+        - SELL
+        - BUY
+        - SELL_BUY
+        - BUY_SELL
+        type: string
+      legs:
+        items:
+          $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.FxDealLegDTO'
+        maxItems: 2
+        minItems: 1
+        type: array
+      note:
+        maxLength: 2000
+        type: string
+      notional_amount:
+        type: number
+      ticket_number:
+        maxLength: 20
+        type: string
+      trade_date:
+        type: string
+    required:
+    - counterparty_id
+    - currency_code
+    - deal_type
+    - direction
+    - legs
+    - notional_amount
+    - trade_date
+    type: object
+  github_com_kienlongbank_treasury-api_pkg_dto.FxDealLegDTO:
+    properties:
+      buy_amount:
+        type: number
+      buy_currency:
+        type: string
+      exchange_rate:
+        type: number
+      leg_number:
+        maximum: 2
+        minimum: 1
+        type: integer
+      sell_amount:
+        type: number
+      sell_currency:
+        type: string
+      value_date:
+        type: string
+    required:
+    - buy_amount
+    - buy_currency
+    - exchange_rate
+    - leg_number
+    - sell_amount
+    - sell_currency
+    - value_date
+    type: object
+  github_com_kienlongbank_treasury-api_pkg_dto.FxDealResponse:
+    properties:
+      counterparty_code:
+        type: string
+      counterparty_id:
+        type: string
+      counterparty_name:
+        type: string
+      created_at:
+        type: string
+      created_by:
+        type: string
+      currency_code:
+        type: string
+      deal_type:
+        type: string
+      direction:
+        type: string
+      id:
+        type: string
+      legs:
+        items:
+          $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.FxDealLegDTO'
+        type: array
+      note:
+        type: string
+      notional_amount:
+        type: number
+      status:
+        type: string
+      ticket_number:
+        type: string
+      trade_date:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    type: object
+  github_com_kienlongbank_treasury-api_pkg_dto.PaginationMeta:
+    description: Pagination metadata for paginated responses.
+    properties:
+      has_more:
+        type: boolean
+      next_cursor:
+        description: Cursor mode
+        type: string
+      page:
+        description: Offset mode
+        type: integer
+      page_size:
+        type: integer
+      prev_cursor:
+        type: string
+      total:
+        description: Shared
+        type: integer
+      total_pages:
+        type: integer
+    type: object
+  github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta:
+    description: Metadata about the API response including request tracing and pagination.
+    properties:
+      pagination:
+        $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.PaginationMeta'
+      request_id:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  github_com_kienlongbank_treasury-api_pkg_dto.UpdateFxDealRequest:
+    properties:
+      counterparty_id:
+        type: string
+      currency_code:
+        type: string
+      deal_type:
+        enum:
+        - SPOT
+        - FORWARD
+        - SWAP
+        type: string
+      direction:
+        enum:
+        - SELL
+        - BUY
+        - SELL_BUY
+        - BUY_SELL
+        type: string
+      legs:
+        items:
+          $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.FxDealLegDTO'
+        maxItems: 2
+        minItems: 1
+        type: array
+      note:
+        maxLength: 2000
+        type: string
+      notional_amount:
+        type: number
+      ticket_number:
+        maxLength: 20
+        type: string
+      trade_date:
+        type: string
+      version:
+        description: optimistic locking
+        minimum: 1
+        type: integer
+    required:
+    - version
+    type: object
+host: localhost:34000
+info:
+  contact:
+    email: it@kienlongbank.com
+    name: KienlongBank IT Department
+  description: API for KienlongBank Treasury Management System — Phase 1
+  license:
+    name: Proprietary
+    url: https://kienlongbank.com/license
+  termsOfService: https://kienlongbank.com/terms
+  title: Treasury Management System API
+  version: "1.0"
+paths:
+  /fx:
+    get:
+      consumes:
+      - application/json
+      description: Lấy danh sách giao dịch ngoại tệ với filter và phân trang. Dữ liệu
+        được lọc theo quyền của người dùng (BRD v3 §6.2).
+      parameters:
+      - description: Filter by status (OPEN, PENDING_L2_APPROVAL, ...)
+        in: query
+        name: status
+        type: string
+      - description: Filter by type (SPOT, FORWARD, SWAP)
+        in: query
+        name: deal_type
+        type: string
+      - description: Filter by counterparty UUID
+        in: query
+        name: counterparty_id
+        type: string
+      - description: From date (YYYY-MM-DD)
+        in: query
+        name: from_date
+        type: string
+      - description: To date (YYYY-MM-DD)
+        in: query
+        name: to_date
+        type: string
+      - description: Filter by ticket number
+        in: query
+        name: ticket_number
+        type: string
+      - default: 1
+        description: Page number (offset mode)
+        in: query
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        name: page_size
+        type: integer
+      - default: created_at
+        description: Sort field
+        in: query
+        name: sort_by
+        type: string
+      - default: desc
+        description: Sort direction (asc, desc)
+        in: query
+        name: sort_dir
+        type: string
+      - description: Cursor for keyset pagination
+        in: query
+        name: cursor
+        type: string
+      - default: 20
+        description: Limit for cursor mode
+        in: query
+        name: limit
+        type: integer
+      - description: Cursor direction (next, prev)
+        in: query
+        name: direction
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.FxDealResponse'
+                  type: array
+                meta:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Danh sách giao dịch FX
+      tags:
+      - FX
+    post:
+      consumes:
+      - application/json
+      description: Tạo một giao dịch ngoại tệ mới (Spot, Forward, hoặc Swap). Giao
+        dịch được tạo ở trạng thái OPEN.
+      parameters:
+      - description: FX deal creation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.CreateFxDealRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.FxDealResponse'
+                meta:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Tạo giao dịch FX mới
+      tags:
+      - FX
+  /fx/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Xóa mềm (soft delete) giao dịch ngoại tệ. Giao dịch vẫn tồn tại
+        trong DB nhưng không hiển thị.
+      parameters:
+      - description: FX Deal ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Xóa mềm giao dịch FX
+      tags:
+      - FX
+    get:
+      consumes:
+      - application/json
+      description: Lấy thông tin chi tiết một giao dịch ngoại tệ theo ID.
+      parameters:
+      - description: FX Deal ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.FxDealResponse'
+                meta:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Chi tiết giao dịch FX
+      tags:
+      - FX
+    put:
+      consumes:
+      - application/json
+      description: Cập nhật thông tin giao dịch ngoại tệ. Chỉ giao dịch ở trạng thái
+        OPEN mới được sửa. Sử dụng optimistic locking (version).
+      parameters:
+      - description: FX Deal ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: FX deal update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.UpdateFxDealRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.FxDealResponse'
+                meta:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "409":
+          description: Conflict
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Cập nhật giao dịch FX
+      tags:
+      - FX
+  /fx/{id}/approve:
+    post:
+      consumes:
+      - application/json
+      description: Phê duyệt (APPROVE) hoặc từ chối (REJECT) giao dịch ngoại tệ. Yêu
+        cầu quyền FX_DEAL.APPROVE.
+      parameters:
+      - description: FX Deal ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Approval payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ApprovalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                data:
+                  type: object
+                meta:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "409":
+          description: Conflict
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Phê duyệt / Từ chối giao dịch FX
+      tags:
+      - FX
+  /fx/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Yêu cầu hủy giao dịch ngoại tệ. Giao dịch sẽ chuyển sang trạng
+        thái CANCELLED.
+      parameters:
+      - description: FX Deal ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Cancellation reason
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            reason:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                data:
+                  type: object
+                meta:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "409":
+          description: Conflict
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Hủy giao dịch FX
+      tags:
+      - FX
+  /fx/{id}/clone:
+    post:
+      consumes:
+      - application/json
+      description: Tạo bản sao của giao dịch ngoại tệ hiện có. Giao dịch mới ở trạng
+        thái OPEN.
+      parameters:
+      - description: FX Deal ID to clone (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.FxDealResponse'
+                meta:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Sao chép giao dịch FX
+      tags:
+      - FX
+  /fx/{id}/recall:
+    post:
+      consumes:
+      - application/json
+      description: Thu hồi giao dịch ngoại tệ về trạng thái OPEN (khi đang chờ duyệt).
+        Yêu cầu quyền FX_DEAL.RECALL.
+      parameters:
+      - description: FX Deal ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Recall reason
+        in: body
+        name: body
+        required: true
+        schema:
+          properties:
+            reason:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                data:
+                  type: object
+                meta:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.ResponseMeta'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "403":
+          description: Forbidden
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "409":
+          description: Conflict
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIResponse'
+            - properties:
+                error:
+                  $ref: '#/definitions/github_com_kienlongbank_treasury-api_pkg_dto.APIError'
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Thu hồi giao dịch FX
+      tags:
+      - FX
+securityDefinitions:
+  BearerAuth:
+    description: Bearer token (JWT)
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: Kinh doanh Ngoại tệ — Foreign Exchange (Spot, Forward, Swap)
+  name: FX
+- description: Giấy tờ có giá — Valuable Papers
+  name: GTCG
+- description: Thị trường Tiền tệ — Money Market
+  name: MM
+- description: Quản lý Hạn mức — Limit Management
+  name: Limits
+- description: Thanh toán Quốc tế — International Payment
+  name: TTQT

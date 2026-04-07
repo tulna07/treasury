@@ -1,0 +1,20 @@
+{{define "content"}}
+<h2 style="color: #C00000;">Thông báo hủy bút toán (Void)</h2>
+<table style="width: 100%; border-collapse: collapse;">
+  <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Module</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{.DealModule}}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Mã giao dịch</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{.TicketNumber}}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Đối tác</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{.CounterpartyName}}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Số tiền</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{.Amount}} {{.Currency}}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Lý do void</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{.VoidReason}}</td></tr>
+  <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Người thực hiện</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{.VoidedBy}}</td></tr>
+  <tr><td style="padding: 8px; font-weight: bold;">Thời điểm</td>
+      <td style="padding: 8px;">{{.VoidedAt}}</td></tr>
+</table>
+<p style="margin-top: 16px; color: #666;">Vui lòng kiểm tra và thực hiện các bút toán điều chỉnh nếu cần thiết.</p>
+{{end}}

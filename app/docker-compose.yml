@@ -1,0 +1,98 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: treasury
+      POSTGRES_USER: treasury
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-treasury_dev_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U treasury -d treasury"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9001:9001"  # MinIO console (optional, for management)
+
+  migrate:
+    image: migrate/migrate:v4
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./services/api/migrations:/migrations
+    command: >
+      -path=/migrations
+      -database=postgres://treasury:${POSTGRES_PASSWORD:-treasury_dev_pass}@postgres:5432/treasury?sslmode=disable
+      up
+    restart: on-failure
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      APP_PORT: "34080"
+      APP_ENV: ${APP_ENV:-development}
+      SECURITY_LEVEL: ${SECURITY_LEVEL:-development}
+      DATABASE_URL: postgres://treasury:${POSTGRES_PASSWORD:-treasury_dev_pass}@postgres:5432/treasury?sslmode=disable
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-treasury-dev-secret-key-2026-change-in-production}
+      AUTH_MODE: ${AUTH_MODE:-standalone}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-localhost}
+      COOKIE_SAMESITE: Lax
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:34000}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: treasury-exports
+      MINIO_USE_SSL: "false"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "34080:34080"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      # Rewrite destination for Next.js server-side proxy (container-to-container)
+      API_INTERNAL_URL: http://api:34080
+    ports:
+      - "34000:34000"
+
+volumes:
+  postgres_data:
+  minio_data:

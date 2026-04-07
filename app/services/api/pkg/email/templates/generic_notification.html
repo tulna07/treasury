@@ -1,0 +1,12 @@
+{{define "content"}}
+<h2 style="color: #1F3864;">{{.Title}}</h2>
+<p style="font-size: 14px; line-height: 1.6;">{{.Message}}</p>
+{{if .TicketNumber}}
+<table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
+  <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Module</td>
+      <td style="padding: 8px; border-bottom: 1px solid #eee;">{{.DealModule}}</td></tr>
+  <tr><td style="padding: 8px; font-weight: bold;">Mã giao dịch</td>
+      <td style="padding: 8px;">{{.TicketNumber}}</td></tr>
+</table>
+{{end}}
+{{end}}

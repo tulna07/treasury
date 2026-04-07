@@ -1,0 +1,30 @@
+# Dependencies and build output
+node_modules
+**/node_modules
+.next
+**/.next
+.turbo
+**/.turbo
+
+# Git
+.git
+.gitignore
+
+# Dev/test files
+**/*.mjs
+**/.task-*.md
+**/e2e-*.mjs
+
+# Backend (not needed for web build)
+services/
+
+# DB dumps
+db-dumps/
+
+# Env files
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Misc
+ecosystem.config.cjs

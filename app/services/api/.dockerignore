@@ -1,0 +1,16 @@
+# Go build artifacts
+bin/
+server
+fx.test
+*.test
+
+# Test and dev files
+scripts/
+*.py
+.task-*.md
+.env
+.env.*
+
+# Git
+.git
+.gitignore
