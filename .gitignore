@@ -35,3 +35,8 @@ npm-debug.log*
 # Turbo
 .turbo/
 screenshots/
+
+app/services/api/server
+app/services/api/fx.test
+app/db-dumps/*.zip
+app/db-dumps/*.sql
