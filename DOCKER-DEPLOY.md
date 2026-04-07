@@ -24,18 +24,10 @@
 
 ## Required Code Changes Before Building
 
-### Change 1 — `app/apps/web/next.config.ts` (CRITICAL)
+### Change 1 — `app/apps/web/next.config.ts` — already applied
 
-The rewrite destination is hardcoded to `localhost:34080`. Inside Docker the web container cannot reach `localhost:34080` — it resolves to itself, not the `api` container.
+The rewrite now reads `API_INTERNAL_URL` at runtime. No action needed:
 
-**Current (broken in Docker):**
-```ts
-async rewrites() {
-  return [{ source: "/api/:path*", destination: "http://localhost:34080/api/:path*" }];
-},
-```
-
-**Fix:**
 ```ts
 async rewrites() {
   const apiBase = process.env.API_INTERNAL_URL ?? "http://localhost:34080";
@@ -43,9 +35,7 @@ async rewrites() {
 },
 ```
 
-Then set `API_INTERNAL_URL=http://api:34080` in the web container environment.
-
-> `NEXT_PUBLIC_API_URL` must remain empty at build time. `src/lib/api.ts` falls back to `/api/v1` when empty — the browser hits Next.js which proxies to the backend via rewrites. This is the intended design (see comment in `.env.local`).
+`API_INTERNAL_URL=http://api:34080` is set in the web container environment (already in `docker-compose.yml`).
 
 ### Note — `output: 'standalone'` already present
 
@@ -55,11 +45,9 @@ Then set `API_INTERNAL_URL=http://api:34080` in the web container environment.
 
 ## Step-by-Step Deployment
 
-### Step 1 — Apply Change 1 above to `next.config.ts`
+### Step 1 — Build and start
 
-This is the **only code change required**. `app/services/api/Dockerfile`, `app/Dockerfile.web`, `app/docker-compose.yml`, and `app/.dockerignore` all already exist in the repo with the correct content.
-
-### Step 2 — Build and start
+All required code changes are already applied in the repo. Just build and run:
 
 ```bash
 cd /Users/tulna/Downloads/treasury/app

@@ -18,7 +18,7 @@
 
 ## Image Build & Push
 
-Apply Change 1 to `next.config.ts` first (see `DOCKER-DEPLOY.md` — the rewrite fix), then:
+All required code changes are already applied in the repo. Build and push:
 
 ```bash
 cd /Users/tulna/Downloads/treasury/app
@@ -38,13 +38,7 @@ docker push your-registry/treasury-migrate:latest
 docker push your-registry/treasury-web:latest
 ```
 
-**`app/services/api/Dockerfile.migrate`** (create this file):
-
-```dockerfile
-FROM migrate/migrate:latest
-COPY migrations /migrations
-ENTRYPOINT ["/migrate"]
-```
+**`app/services/api/Dockerfile.migrate`** already exists in the repo.
 
 > Migration files are baked into the image at build time. When new migration files are added (014, 015, ...), rebuild and push `treasury-migrate` — no ConfigMap or Job changes needed.
 
@@ -350,7 +344,7 @@ psql -h <rds-endpoint> -U treasury -d treasury \
 | `export_audit_logs` | Not in numbered migrations — apply `db/migrations/create_export_audit_logs.sql` manually once on first deploy. Server starts without it but exports fail at runtime |
 | Seed data | Not applied by migrate — apply `migrations/seed/001_seed.sql` manually once on first deploy |
 | SSE | Requires `proxy-buffering: off` on ingress — `/api/v1/notifications/stream` keeps connection open |
-| `API_INTERNAL_URL` | Must be set on web pod — requires `next.config.ts` fix (see `DOCKER-DEPLOY.md`) |
+| `API_INTERNAL_URL` | Must be set on web pod — read by `next.config.ts` rewrites at runtime to proxy `/api/*` to the backend |
 | Health endpoint | `GET /health` → `{"status":"ok","service":"treasury-api"}` |
 | `SECURITY_LEVEL=production` | Sets `CookieSecure: true`, 15m access token TTL, 7d refresh token TTL, strict rate limits |
 | `APP_ENV` not `SERVER_ENV` | `config.go` reads `APP_ENV`. Dev `.env` has `SERVER_ENV` which is silently ignored |
