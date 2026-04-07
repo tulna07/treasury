@@ -8,13 +8,12 @@ RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 FROM base AS deps
 WORKDIR /app
 
-# Copy only manifests first for better layer caching
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY .npmrc pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/ui/package.json ./packages/ui/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --shamefully-hoist
 
 # ─── Build ────────────────────────────────────────────────────
 FROM base AS builder
