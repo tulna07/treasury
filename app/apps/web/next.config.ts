@@ -35,10 +35,11 @@ const nextConfig: NextConfig = {
     ];
   },
   async rewrites() {
+    const apiBase = process.env.API_INTERNAL_URL ?? "http://localhost:34080";
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:34080/api/:path*",
+        destination: `${apiBase}/api/:path*`,
       },
     ];
   },
