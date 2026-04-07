@@ -6,6 +6,12 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "@tabler/icons-react"],
   },
+  turbopack: {
+    resolveAlias: {
+      "tw-animate-css": "tw-animate-css/dist/tw-animate.css",
+      "shadcn/tailwind.css": "shadcn/dist/tailwind.css",
+    },
+  },
   async headers() {
     return [
       {
