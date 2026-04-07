@@ -20,9 +20,9 @@ RUN pnpm install --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 
+COPY . .
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-COPY . .
 
 # NEXT_PUBLIC_API_URL must be empty at build time.
 # The browser uses relative /api/v1 — Next.js rewrites proxy to the backend.
